@@ -1,0 +1,15 @@
+# Secrets - never commit
+.env
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+*.db
+.pytest_cache/
+
+# Pipeline output
+test-results.xml
+
+# Editor
+.vscode/

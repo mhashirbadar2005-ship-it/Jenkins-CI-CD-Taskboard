@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Task Board</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 560px; margin: 40px auto; padding: 0 16px; color: #222; }
+    h1 { font-size: 1.5rem; }
+    form { display: flex; gap: 8px; margin-bottom: 16px; }
+    input[type=text] { flex: 1; padding: 8px; font-size: 1rem; }
+    button { padding: 8px 12px; cursor: pointer; }
+    ul { list-style: none; padding: 0; }
+    li { display: flex; align-items: center; gap: 8px; padding: 8px 0; border-bottom: 1px solid #ddd; }
+    li span { flex: 1; }
+    li.done span { text-decoration: line-through; color: #888; }
+    #status { font-size: 0.85rem; color: #666; }
+  </style>
+</head>
+<body>
+  <h1>Task Board</h1>
+  <form id="task-form">
+    <input type="text" id="title" placeholder="Add a task" maxlength="120" required>
+    <button type="submit">Add</button>
+  </form>
+  <ul id="tasks"></ul>
+  <p id="status"></p>
+
+  <script>
+    const list = document.getElementById("tasks");
+    const form = document.getElementById("task-form");
+    const titleInput = document.getElementById("title");
+    const statusEl = document.getElementById("status");
+    const JSON_HEADERS = { "Content-Type": "application/json" };
+
+    async function api(path, options) {
+      const res = await fetch(path, options);
+      if (!res.ok) throw new Error("Request failed: " + res.status);
+      return res.status === 204 ? null : res.json();
+    }
+
+    function render(tasks) {
+      list.innerHTML = "";
+      tasks.forEach((task) => {
+        const li = document.createElement("li");
+        if (task.done) li.className = "done";
+
+        const box = document.createElement("input");
+        box.type = "checkbox";
+        box.checked = task.done;
+        box.addEventListener("change", () => toggle(task.id, box.checked));
+
+        const label = document.createElement("span");
+        label.textContent = task.title;
+
+        const del = document.createElement("button");
+        del.textContent = "Delete";
+        del.addEventListener("click", () => remove(task.id));
+
+        li.append(box, label, del);
+        list.appendChild(li);
+      });
+      statusEl.textContent = tasks.length + " task(s)";
+    }
+
+    async function load() {
+      try {
+        render(await api("/api/tasks"));
+      } catch (err) {
+        statusEl.textContent = "Could not load tasks.";
+      }
+    }
+
+    async function toggle(id, done) {
+      await api("/api/tasks/" + id, {
+        method: "PATCH", headers: JSON_HEADERS, body: JSON.stringify({ done }),
+      });
+      load();
+    }
+
+    async function remove(id) {
+      await api("/api/tasks/" + id, { method: "DELETE" });
+      load();
+    }
+
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      await api("/api/tasks", {
+        method: "POST", headers: JSON_HEADERS,
+        body: JSON.stringify({ title: titleInput.value }),
+      });
+      titleInput.value = "";
+      load();
+    });
+
+    load();
+  </script>
+</body>
+</html>
