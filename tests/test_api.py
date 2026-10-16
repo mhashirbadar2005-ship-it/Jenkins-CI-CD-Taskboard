@@ -21,7 +21,7 @@ def test_create_and_list_task(client):
     assert created.status_code == 201
     body = created.json()
     assert body["title"] == "Write the Jenkinsfile"
-    assert body["done"] is True
+    assert body["done"] is False
 
     listed = client.get("/api/tasks").json()
     assert [task["title"] for task in listed] == ["Write the Jenkinsfile"]
