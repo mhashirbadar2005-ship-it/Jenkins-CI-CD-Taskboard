@@ -73,3 +73,4 @@ Open `http://localhost:8000`. Stop it with `docker compose down`.
 3. Unit tests: `pytest`, results published to Jenkins
 4. Build image: Docker build, tagged with the build number
 5. Deploy: run the new container against RDS and wait for `/health`
+
